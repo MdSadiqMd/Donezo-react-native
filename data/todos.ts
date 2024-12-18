@@ -1,4 +1,6 @@
-export const todos = [
+import { Todo } from "@/types/todos.types";
+
+export const todos: Todo[] = [
     {
         id: 1,
         text: "Take out the trash",
