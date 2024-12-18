@@ -1,1 +1,0 @@
-# Donezo-react-native
