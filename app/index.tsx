@@ -8,16 +8,21 @@ import { Inter_500Medium, useFonts } from "@expo-google-fonts/inter";
 import { todos } from "@/data/todos";
 import { Todo } from "@/types/todos.types";
 import { ThemeContext } from "@/context/ThemeContext";
+import { Theme, ColorScheme } from "@/constants/Colors";
 
 export default function Index() {
     const [_todos, setTodos] = useState<Todo[]>(todos.sort((a, b) => a.id - b.id));
     const [text, setText] = useState<string>('');
-    const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
+    const context = useContext(ThemeContext);
+    if (!context) return null;
+    const { colorScheme, setColorScheme, theme } = context;
 
     const [loaded, error] = useFonts({
         Inter_500Medium
     });
     if (!loaded && !error) return null;
+    if (!theme || !colorScheme) return;
+    const styles = createStyles(theme, colorScheme);
 
     const addTodos = () => {
         if (text.trim()) {
@@ -50,7 +55,7 @@ export default function Index() {
                     value={text}
                     onChangeText={setText}
                     placeholder="What needs to be done?"
-                    placeholderTextColor="#aaa"
+                    placeholderTextColor={theme.placeholderTextColor}
                 />
                 <Pressable style={styles.addButton} onPress={addTodos}>
                     <Text style={styles.addButtonText}>Add</Text>
@@ -59,9 +64,10 @@ export default function Index() {
                     style={{ marginLeft: 10 }}
                     onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}
                 >
-                    <Text style={styles.addButtonText}>{colorScheme === 'dark'
-                        ? <Octicons name="moon" size={24} color={theme.text} />
-                        : <Octicons name="sun" size={24} color={theme.text} />}
+                    <Text style={styles.addButtonText}>
+                        {colorScheme === 'dark'
+                            ? <Octicons name="moon" size={24} color={theme.text} />
+                            : <Octicons name="sun" size={24} color={theme.text} />}
                     </Text>
                 </Pressable>
             </View>
@@ -95,85 +101,88 @@ export default function Index() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#f8f9fa",
-        paddingHorizontal: 16,
-        paddingVertical: 24,
-    },
-    inputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 16,
-    },
-    textInput: {
-        flex: 1,
-        height: 50,
-        borderWidth: 1,
-        borderColor: "#ced4da",
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        backgroundColor: "#fff",
-        fontSize: 16,
-        fontFamily: "Inter_500Medium",
-    },
-    addButton: {
-        marginLeft: 8,
-        backgroundColor: "#007bff",
-        borderRadius: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 16,
-    },
-    addButtonText: {
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: "bold",
-        fontFamily: "Inter_500Medium",
-    },
-    todoList: {
-        flex: 1,
-    },
-    todoItem: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#fff",
-        borderRadius: 8,
-        padding: 16,
-        marginBottom: 8,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    checkbox: {
-        width: 20,
-        height: 20,
-        borderWidth: 1,
-        borderColor: "#ced4da",
-        borderRadius: 4,
-        marginRight: 12,
-        backgroundColor: "#fff",
-    },
-    checkboxCompleted: {
-        backgroundColor: "#28a745",
-    },
-    todoText: {
-        flex: 1,
-        fontSize: 16,
-        color: "#212529",
-        fontFamily: "Inter_500Medium",
-    },
-    todoTextCompleted: {
-        textDecorationLine: "line-through",
-        color: "#6c757d",
-    },
-    removeButton: {
-        marginLeft: 12,
-    },
-    removeButtonText: {
-        color: "#dc3545",
-        fontSize: 14,
-    },
-});
+function createStyles(theme: Theme, colorScheme: ColorScheme) {
+    return StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colorScheme === 'dark' ? theme.backgroundDark : theme.backgroundLight,
+            paddingHorizontal: 16,
+            paddingVertical: 24,
+        },
+        inputContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 16,
+        },
+        textInput: {
+            flex: 1,
+            height: 50,
+            borderWidth: 1,
+            borderColor: theme.inputBorderColor,
+            borderRadius: 8,
+            paddingHorizontal: 12,
+            backgroundColor: theme.inputBackgroundColor,
+            fontSize: 16,
+            fontFamily: "Inter_500Medium",
+            color: theme.text,
+        },
+        addButton: {
+            marginLeft: 8,
+            backgroundColor: theme.buttonBackgroundColor,
+            borderRadius: 8,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+        },
+        addButtonText: {
+            color: theme.buttonTextColor,
+            fontSize: 16,
+            fontWeight: "bold",
+            fontFamily: "Inter_500Medium",
+        },
+        todoList: {
+            flex: 1,
+        },
+        todoItem: {
+            flexDirection: "row",
+            alignItems: "center",
+            backgroundColor: theme.itemBackgroundColor,
+            borderRadius: 8,
+            padding: 16,
+            marginBottom: 8,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 2,
+        },
+        checkbox: {
+            width: 20,
+            height: 20,
+            borderWidth: 1,
+            borderColor: theme.checkboxBorderColor,
+            borderRadius: 4,
+            marginRight: 12,
+            backgroundColor: theme.checkboxBackgroundColor,
+        },
+        checkboxCompleted: {
+            backgroundColor: theme.checkboxCompletedBackgroundColor,
+        },
+        todoText: {
+            flex: 1,
+            fontSize: 16,
+            color: theme.text,
+            fontFamily: "Inter_500Medium",
+        },
+        todoTextCompleted: {
+            textDecorationLine: "line-through",
+            color: theme.textCompletedColor,
+        },
+        removeButton: {
+            marginLeft: 12,
+        },
+        removeButtonText: {
+            color: theme.removeButtonTextColor,
+            fontSize: 14,
+        },
+    });
+}
