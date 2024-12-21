@@ -3,6 +3,7 @@ import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Inter_500Medium, useFonts } from "@expo-google-fonts/inter";
 
 import { todos } from "@/data/todos";
 import { Todo } from "@/types/todos.types";
@@ -10,6 +11,11 @@ import { Todo } from "@/types/todos.types";
 export default function Index() {
     const [_todos, setTodos] = useState<Todo[]>(todos.sort((a, b) => a.id - b.id));
     const [text, setText] = useState<string>('');
+
+    const [loaded, error] = useFonts({
+        Inter_500Medium
+    });
+    if (!loaded && !error) return null;
 
     const addTodos = () => {
         if (text.trim()) {
@@ -99,6 +105,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         backgroundColor: "#fff",
         fontSize: 16,
+        fontFamily: "Inter_500Medium",
     },
     addButton: {
         marginLeft: 8,
@@ -111,6 +118,7 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 16,
         fontWeight: "bold",
+        fontFamily: "Inter_500Medium",
     },
     todoList: {
         flex: 1,
@@ -144,6 +152,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 16,
         color: "#212529",
+        fontFamily: "Inter_500Medium",
     },
     todoTextCompleted: {
         textDecorationLine: "line-through",
