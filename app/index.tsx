@@ -1,16 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { Inter_500Medium, useFonts } from "@expo-google-fonts/inter";
 
 import { todos } from "@/data/todos";
 import { Todo } from "@/types/todos.types";
+import { ThemeContext } from "@/context/ThemeContext";
 
 export default function Index() {
     const [_todos, setTodos] = useState<Todo[]>(todos.sort((a, b) => a.id - b.id));
     const [text, setText] = useState<string>('');
+    const { colorScheme, setColorScheme, theme } = useContext(ThemeContext);
 
     const [loaded, error] = useFonts({
         Inter_500Medium
@@ -52,6 +54,15 @@ export default function Index() {
                 />
                 <Pressable style={styles.addButton} onPress={addTodos}>
                     <Text style={styles.addButtonText}>Add</Text>
+                </Pressable>
+                <Pressable
+                    style={{ marginLeft: 10 }}
+                    onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}
+                >
+                    <Text style={styles.addButtonText}>{colorScheme === 'dark'
+                        ? <Octicons name="moon" size={24} color={theme.text} />
+                        : <Octicons name="sun" size={24} color={theme.text} />}
+                    </Text>
                 </Pressable>
             </View>
             <FlatList
