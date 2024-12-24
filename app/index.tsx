@@ -27,15 +27,15 @@ export default function Index() {
 
     const addTodos = () => {
         if (text.trim()) {
-            const newId = todos.length > 0 ? todos[todos.length - 1].id + 1 : 1;
-            setTodos([..._todos, { id: newId, text, completed: false }]);
+            const newId = todos.length > 0 ? todos[0].id - 1 : 1;
+            setTodos([{ id: newId, text, completed: false }, ..._todos]);
             setText('');
         }
     };
 
     const toggleTodo = (id: number) => {
         setTodos(
-            _todos.map((todo) => {
+            _todos.reverse().map((todo) => {
                 if (todo.id === id) {
                     return { ...todo, completed: !todo.completed };
                 }
