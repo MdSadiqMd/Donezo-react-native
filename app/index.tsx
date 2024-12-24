@@ -1,51 +1,79 @@
 import React, { useState, useContext } from "react";
-import { FlatList, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
 import { MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { Inter_500Medium, useFonts } from "@expo-google-fonts/inter";
 import Animated, { LinearTransition } from "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { StatusBar } from "expo-status-bar";
 
-import { todos } from "@/data/todos";
+import { todos as defaultTodos } from "@/data/todos";
 import { Todo } from "@/types/todos.types";
 import { ThemeContext } from "@/context/ThemeContext";
 import { Theme, ColorScheme } from "@/constants/Colors";
 
 export default function Index() {
-    const [_todos, setTodos] = useState<Todo[]>(todos.sort((a, b) => a.id - b.id));
-    const [text, setText] = useState<string>('');
+    const [_todos, setTodos] = useState<Todo[]>([]);
+    const [text, setText] = useState<string>("");
     const context = useContext(ThemeContext);
     if (!context) return null;
     const { colorScheme, setColorScheme, theme } = context;
 
     const [loaded, error] = useFonts({
-        Inter_500Medium
+        Inter_500Medium,
     });
     if (!loaded && !error) return null;
     if (!theme || !colorScheme) return;
+
+    const initializeTodos = async () => {
+        try {
+            const jsonValue = await AsyncStorage.getItem("todos");
+            const storageTodos = jsonValue ? JSON.parse(jsonValue) : null;
+            if (storageTodos && storageTodos.length > 0) {
+                setTodos(storageTodos.sort((a: Todo, b: Todo) => a.id - b.id));
+            } else {
+                setTodos(defaultTodos.sort((a: Todo, b: Todo) => a.id - b.id));
+            }
+        } catch (error) {
+            console.error("Error fetching todos:", error);
+        }
+    };
+
+    const saveTodos = async (newTodos: Todo[]) => {
+        try {
+            setTodos(newTodos);
+            const jsonValue = JSON.stringify(newTodos);
+            await AsyncStorage.setItem("todos", jsonValue);
+        } catch (error) {
+            console.error("Error saving todos:", error);
+        }
+    };
+
+    if (_todos.length === 0) {
+        initializeTodos();
+    }
     const styles = createStyles(theme, colorScheme);
 
     const addTodos = () => {
         if (text.trim()) {
-            const newId = todos.length > 0 ? todos[0].id - 1 : 1;
-            setTodos([{ id: newId, text, completed: false }, ..._todos]);
-            setText('');
+            const newId = _todos.length > 0 ? _todos[0].id - 1 : 1;
+            const newTodos = [{ id: newId, text, completed: false }, ..._todos];
+            saveTodos(newTodos);
+            setText("");
         }
     };
 
     const toggleTodo = (id: number) => {
-        setTodos(
-            _todos.reverse().map((todo) => {
-                if (todo.id === id) {
-                    return { ...todo, completed: !todo.completed };
-                }
-                return todo;
-            })
+        const updatedTodos = _todos.map((todo) =>
+            todo.id === id ? { ...todo, completed: !todo.completed } : todo
         );
+        saveTodos(updatedTodos);
     };
 
     const removeTodo = (id: number) => {
-        setTodos(_todos.filter((todo) => todo.id !== id));
+        const updatedTodos = _todos.filter((todo) => todo.id !== id);
+        saveTodos(updatedTodos);
     };
 
     return (
@@ -63,23 +91,30 @@ export default function Index() {
                 </Pressable>
                 <Pressable
                     style={{ marginLeft: 10 }}
-                    onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}
+                    onPress={() =>
+                        setColorScheme(colorScheme === "light" ? "dark" : "light")
+                    }
                 >
                     <Text style={styles.addButtonText}>
-                        {colorScheme === 'dark'
-                            ? <Octicons name="moon" size={24} color={theme.text} />
-                            : <Octicons name="sun" size={24} color={theme.text} />}
+                        {colorScheme === "dark" ? (
+                            <Octicons name="moon" size={24} color={theme.text} />
+                        ) : (
+                            <Octicons name="sun" size={24} color={theme.text} />
+                        )}
                     </Text>
                 </Pressable>
             </View>
             <Animated.FlatList
                 data={_todos}
-                keyExtractor={(item: any) => item.id.toString()}
+                keyExtractor={(item: Todo) => item.id.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.todoItem}>
                         <Pressable
                             onPress={() => toggleTodo(item.id)}
-                            style={[styles.checkbox, item.completed && styles.checkboxCompleted]}
+                            style={[
+                                styles.checkbox,
+                                item.completed && styles.checkboxCompleted,
+                            ]}
                         />
                         <Text
                             style={[
@@ -91,7 +126,11 @@ export default function Index() {
                         </Text>
                         <Pressable onPress={() => removeTodo(item.id)} style={styles.removeButton}>
                             <Text style={styles.removeButtonText}>
-                                <MaterialCommunityIcons name="delete-circle" size={24} color="red" />
+                                <MaterialCommunityIcons
+                                    name="delete-circle"
+                                    size={24}
+                                    color="red"
+                                />
                             </Text>
                         </Pressable>
                     </View>
@@ -100,6 +139,7 @@ export default function Index() {
                 itemLayoutAnimation={LinearTransition}
                 keyboardDismissMode={"on-drag"}
             />
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
         </SafeAreaView>
     );
 }
