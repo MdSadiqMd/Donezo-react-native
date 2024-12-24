@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StyleSheet } from "react-native";
 import { MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import { Inter_500Medium, useFonts } from "@expo-google-fonts/inter";
+import Animated, { LinearTransition } from "react-native-reanimated";
 
 import { todos } from "@/data/todos";
 import { Todo } from "@/types/todos.types";
@@ -71,7 +72,7 @@ export default function Index() {
                     </Text>
                 </Pressable>
             </View>
-            <FlatList
+            <Animated.FlatList
                 data={_todos}
                 keyExtractor={(item: any) => item.id.toString()}
                 renderItem={({ item }) => (
@@ -96,6 +97,8 @@ export default function Index() {
                     </View>
                 )}
                 style={styles.todoList}
+                itemLayoutAnimation={LinearTransition}
+                keyboardDismissMode={"on-drag"}
             />
         </SafeAreaView>
     );
