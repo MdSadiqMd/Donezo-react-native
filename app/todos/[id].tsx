@@ -13,7 +13,7 @@ import { Theme, ColorScheme } from "@/constants/Colors";
 
 export default function EditScreen() {
     const { id } = useLocalSearchParams();
-    const [todo, setTodo] = useState<Todo[]>([]);
+    const [todo, setTodo] = useState<Todo | null>(null);
     const context = useContext(ThemeContext);
     if (!context) return null;
 
@@ -32,7 +32,7 @@ export default function EditScreen() {
                 const storageTodos = jsonValue ? JSON.parse(jsonValue) : null;
                 if (storageTodos && storageTodos.length > 0) {
                     const myTodo = storageTodos.find((todo: Todo) => todo.id === id);
-                    setTodo(myTodo);
+                    if (myTodo) setTodo(myTodo);
                 }
             } catch (error) {
                 console.error("Error fetching todos:", error);
@@ -46,17 +46,10 @@ export default function EditScreen() {
         try {
             const jsonValue = await AsyncStorage.getItem("todos");
             const storageTodos = jsonValue ? JSON.parse(jsonValue) : null;
-            if (storageTodos && storageTodos.length > 0) {
-                const updatedTodos = storageTodos.map((todo: Todo) => {
-                    if (todo.id === Number(id)) {
-                        return {
-                            ...todo,
-                            text: todo.text,
-                            completed: todo.completed,
-                        };
-                    }
-                    return todo;
-                });
+            if (storageTodos && todo) {
+                const updatedTodos = storageTodos.map((item: Todo) =>
+                    item.id === Number(id) ? { ...todo } : item
+                );
                 await AsyncStorage.setItem("todos", JSON.stringify(updatedTodos));
             }
             router.push(`/`);
@@ -73,15 +66,17 @@ export default function EditScreen() {
                     maxLength={30}
                     placeholder="Edit todo"
                     placeholderTextColor="gray"
-                    value={todo.length > 0 ? todo[0].text : ''}
-                    onChangeText={(text) => setTodo(prev => ({ ...prev, title: text }))}
+                    value={todo?.text || ""}
+                    onChangeText={(text) =>
+                        setTodo((prev) => (prev ? { ...prev, text } : null))
+                    }
                 />
                 <Pressable
-                    onPress={() => setColorScheme(colorScheme === 'light' ? 'dark' : 'light')}
+                    onPress={() => setColorScheme(colorScheme === "light" ? "dark" : "light")}
                     style={{ marginLeft: 10 }}
                 >
                     <Octicons
-                        name={colorScheme === 'dark' ? "moon" : "sun"}
+                        name={colorScheme === "dark" ? "moon" : "sun"}
                         size={36}
                         color={theme.text}
                         selectable={undefined}
@@ -90,20 +85,17 @@ export default function EditScreen() {
                 </Pressable>
             </View>
             <View style={styles.inputContainer}>
-                <Pressable
-                    onPress={handleSave}
-                    style={styles.saveButton}
-                >
+                <Pressable onPress={handleSave} style={styles.saveButton}>
                     <Text style={styles.saveButtonText}>Save</Text>
                 </Pressable>
                 <Pressable
-                    onPress={() => router.push('/')}
-                    style={[styles.saveButton, { backgroundColor: 'red' }]}
+                    onPress={() => router.push("/")}
+                    style={[styles.saveButton, { backgroundColor: "red" }]}
                 >
-                    <Text style={[styles.saveButtonText, { color: 'white' }]}>Cancel</Text>
+                    <Text style={[styles.saveButtonText, { color: "white" }]}>Cancel</Text>
                 </Pressable>
             </View>
-            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+            <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
         </SafeAreaView>
     );
 }
@@ -112,28 +104,28 @@ function createStyles(theme: Theme, colorScheme: ColorScheme) {
     return StyleSheet.create({
         container: {
             flex: 1,
-            width: '100%',
+            width: "100%",
             backgroundColor: theme.backgroundDark,
         },
         inputContainer: {
-            flexDirection: 'row',
-            alignItems: 'center',
+            flexDirection: "row",
+            alignItems: "center",
             padding: 10,
             gap: 6,
-            width: '100%',
+            width: "100%",
             maxWidth: 1024,
-            marginHorizontal: 'auto',
-            pointerEvents: 'auto',
+            marginHorizontal: "auto",
+            pointerEvents: "auto",
         },
         input: {
             flex: 1,
-            borderColor: 'gray',
+            borderColor: "gray",
             borderWidth: 1,
             borderRadius: 5,
             padding: 10,
             marginRight: 10,
             fontSize: 18,
-            fontFamily: 'Inter_500Medium',
+            fontFamily: "Inter_500Medium",
             minWidth: 0,
             color: theme.text,
         },
@@ -144,7 +136,7 @@ function createStyles(theme: Theme, colorScheme: ColorScheme) {
         },
         saveButtonText: {
             fontSize: 18,
-            color: colorScheme === 'dark' ? 'black' : 'white',
-        }
+            color: colorScheme === "dark" ? "black" : "white",
+        },
     });
 }
